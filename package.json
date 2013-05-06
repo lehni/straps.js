@@ -1,0 +1,11 @@
+{
+	"name": "strap",
+	"version": "1.0.0",
+	"main": "strap.js",
+	"description": "JavaScript Inheritance Framework",
+	"homepage": "https://github.com/lehni/strap.js",
+	"license": "MIT",
+	"author": "Jürg Lehni <juerg@lehni.org> (http://lehni.org)",
+	"repository": "git://github.com/lehni/strap.js",
+	"keywords": ["javascript", "inheritance", "class", "beans"]  
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Example</title>
+<script type="text/javascript" src="strap.js"></script>
+<script type="text/javascript">
+var MyClass = Base.extend({
+    initialize: function() {
+        this._value = 10;
+        console.log('Creating MyClass instance');
+    },
+
+    getValue: function() {
+        console.log('Accessing value, returnig: ' + this._value);
+        return this._value;
+    },
+
+    setValue: function(value) {
+        console.log('Setting value to: ' + value);
+        this._value = value;
+    }
+});
+
+var obj = new MyClass();
+console.log('obj.value is: ' + obj.value);
+obj.value = 20;
+console.log('obj.value is: ' + obj.value);
+</script>
+</head>
+<body>
+</body>
