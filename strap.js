@@ -360,6 +360,6 @@ var Base = new function() { // Bootstrap scope
 	});
 };
 
-// Export paragraphs function for node
+// Export Base class for node
 if (typeof module !== 'undefined')
 	module.exports = Base;
