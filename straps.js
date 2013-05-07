@@ -10,8 +10,8 @@
  * straps.js was created by extracting and simplifying the inheritance code from
  * boostrap.js, a JavaScript DOM library, also published by Juerg Lehni:
  * https://github.com/lehni/bootstrap.js
- * The name changed due to Twitter's introduction of their CSS framework with
- * the same name.
+ * The name was changed due to Twitter's introduction of their CSS framework
+ * with the same name.
  *
  * Inspirations:
  * http://dean.edwards.name/weblog/2006/03/base/
