@@ -1,18 +1,21 @@
 /**
- * strap.js - JavaScript Inheritance Framework
+ * straps.js - Inheritance library with support for bean-style accessors and
+ * AOP patterns.
+ *
  * Copyright (c) 2006 - 2013 Juerg Lehni
  * http://lehni.org/
  *
  * Distributed under the MIT license.
  *
- * strap.js was created by extracting the inheritance code from boostrap.js,
- * a JavaScript DOM library, also published by Juerg Lehni.
- * The name change is due to Twitter's introduction of their css framework.
+ * straps.js was created by extracting and simplifying the inheritance code from
+ * boostrap.js, a JavaScript DOM library, also published by Juerg Lehni:
+ * https://github.com/lehni/bootstrap.js
+ * The name changed due to Twitter's introduction of their CSS framework with
+ * the same name.
  *
  * Inspirations:
  * http://dean.edwards.name/weblog/2006/03/base/
  * http://dev.helma.org/Wiki/JavaScript+Inheritance+Sugar/
- * http://prototypejs.org/
  */
 
 var Base = new function() { // Bootstrap scope
