@@ -18,7 +18,7 @@
  * http://dev.helma.org/Wiki/JavaScript+Inheritance+Sugar/
  */
 
-var Base = new function() { // Bootstrap scope
+var Base = new function() {
 	var hidden = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
 		proto = Object.prototype,
 		toString = proto.toString,
@@ -332,7 +332,7 @@ var Base = new function() { // Bootstrap scope
 			 */
 			isPlainObject: function(obj) {
 				var proto = obj !== null && typeof obj === 'object'
-					&& Object.getPrototypeOf(obj);
+						&& Object.getPrototypeOf(obj);
 				return proto && (proto === Object.prototype
 						|| proto === Base.prototype);
 			},
