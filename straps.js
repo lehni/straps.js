@@ -201,7 +201,8 @@ var Base = new function() {
 	}
 
 	// Inject into new ctor object that's passed to inject(), and then returned
-	return inject(function() {}, {
+	// as the Base class.
+	return inject(function Base() {}, {
 		inject: function(src/*, ... */) {
 			if (src) {
 				var proto = this.prototype,
