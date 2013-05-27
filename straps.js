@@ -309,12 +309,12 @@ var Base = new function() {
 			 * plain Base object, as produced by Base.merge().
 			 */
 			isPlainObject: function(obj) {
-				var ctor = obj.constructor;
+				var ctor = obj != null && obj.constructor;
 				// We also need to check for ctor.name === 'Object', in case
 				// this is an object from another global scope (e.g. an iframe,
 				// or another vm context in node.js).
-				return ctor === Object || ctor === Base
-						|| ctor.name === 'Object';
+				return ctor && (ctor === Object || ctor === Base
+						|| ctor.name === 'Object');
 			},
 
 			check: function(obj) {
