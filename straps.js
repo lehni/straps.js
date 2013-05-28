@@ -16,7 +16,7 @@
  */
 
 var Base = new function() {
-	var hidden = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
+	var hide = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
 		toString = Object.prototype.toString,
 		proto = Array.prototype,
 		slice = proto.slice,
@@ -158,7 +158,7 @@ var Base = new function() {
 		if (src) {
 			beans = [];
 			for (var name in src)
-				if (src.hasOwnProperty(name) && !hidden.test(name))
+				if (src.hasOwnProperty(name) && !hide.test(name))
 					field(name, null, true, generics);
 			// IE (and some other browsers?) never enumerate these, even  if
 			// they are simply set on an object. Force their creation. Do not
