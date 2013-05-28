@@ -227,15 +227,15 @@ var Base = new function() {
 		},
 
 		extend: function(src/* , ... */) {
-			var ctor,
-				base = this;
-			// Look for an initialize function in all injection scopes and use
-			// it as the actual constructor.
+			var base = this,
+				ctor;
+			// Look for an initialize function in all injection objects and use
+			// it directly as the actual constructor.
 			for (var i = 0, l = arguments.length; i < l; i++)
 				if (ctor = arguments[i].initialize)
 					break;
-			// If no initialize function is provided, create one that simply
-			// calls the base constructor.
+			// If no initialize function is provided, create a constructor that
+			// simply calls the base constructor.
 			ctor = ctor || function() {
 				base.apply(this, arguments);
 			};
