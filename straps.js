@@ -186,10 +186,11 @@ var Base = new function() {
 	function each(obj, iter, bind, asArray) {
 		try {
 			if (obj)
-				(asArray || asArray === undefined && isArray(obj)
+				(asArray || typeof asArray === 'undefined' && isArray(obj)
 					? forEach : forIn).call(obj, iter, bind = bind || obj);
 		} catch (e) {
-			if (e !== Base.stop) throw e;
+			if (e !== Base.stop)
+				throw e;
 		}
 		return bind;
 	}
