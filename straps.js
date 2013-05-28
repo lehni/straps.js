@@ -76,8 +76,12 @@ var Base = new function() {
 		},
 
 		define = function(obj, name, desc) {
-			// Unfortunately WebKit seems to ignore configurable: true and does
-			// not override existing properties, so we need to delete first:
+			// Both Safari and Chrome at one point ignored configurable = true
+			// and did not allow overriding of existing properties:
+			// https://code.google.com/p/chromium/issues/detail?id=72736
+			// https://bugs.webkit.org/show_bug.cgi?id=54289
+			// The workaround is to delete the property first.
+			// TODO: Remove this fix in July 2014, and use _define directly.
 			delete obj[name];
 			return _define(obj, name, desc);
 		};
