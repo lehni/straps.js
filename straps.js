@@ -16,7 +16,7 @@
  */
 
 var Base = new function() {
-	var hide = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
+	var hidden = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
 		toString = Object.prototype.toString,
 		proto = Array.prototype,
 		slice = proto.slice,
@@ -83,12 +83,25 @@ var Base = new function() {
 			return _define(obj, name, desc);
 		};
 
+	// Fix Function#name on browsers that do not support it (IE):
+	if (!(function f() {}).name) {
+		define(Function.prototype, 'name', {
+			get: function() {
+				var name = this.toString().match(/^\s*function\s*(\w*)\s*\(/)[1];
+				// For better performance only parse once, and then cache the
+				// result through a new accessor for repeated access.
+				define(this, 'name', { value: name });
+				return name;
+			}
+		});
+	}
+
 	/**
 	 * Private function that injects functions from src into dest, overriding
 	 * (and inherinting from) base.
 	 */
 	function inject(dest, src, enumerable, base, preserve, generics) {
-		var beans, bean;
+		var beans;
 
 		/**
 		 * Private function that injects one field with given name and checks if
@@ -113,7 +126,8 @@ var Base = new function() {
 				// defining a getter, don't lookup previous value, but look if
 				// the property exists (name in dest) and store result in prev
 				prev = preserve || isFunc
-					? (val && val.get ? name in dest : dest[name]) : null;
+					? (val && val.get ? name in dest : dest[name]) : null,
+				bean;
 			if ((dontCheck || val !== undefined && src.hasOwnProperty(name))
 					&& (!preserve || !prev)) {
 				// Expose the 'super' function (meaning the one this function is
@@ -158,7 +172,7 @@ var Base = new function() {
 		if (src) {
 			beans = [];
 			for (var name in src)
-				if (src.hasOwnProperty(name) && !hide.test(name))
+				if (src.hasOwnProperty(name) && !hidden.test(name))
 					field(name, null, true, generics);
 			// IE (and some other browsers?) never enumerate these, even  if
 			// they are simply set on an object. Force their creation. Do not
@@ -170,7 +184,8 @@ var Base = new function() {
 			// support of this.base() (See above).
 			for (var i = 0, l = beans && beans.length; i < l; i++)
 				try {
-					var bean = beans[i], part = bean[1];
+					var bean = beans[i],
+						part = bean[1];
 					field(bean[0], {
 						get: dest['get' + part] || dest['is' + part],
 						set: dest['set' + part]
