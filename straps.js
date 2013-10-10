@@ -322,10 +322,6 @@ var Base = new function() {
 						|| ctor.name === 'Object');
 			},
 
-			check: function(obj) {
-				return !!(obj || obj === 0);
-			},
-
 			/**
 			 * Returns the first argument that is defined. null is counted as
 			 * defined too, as !== undefined is used for comparisons.
