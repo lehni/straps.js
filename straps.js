@@ -172,15 +172,14 @@ var Base = new function() {
 			field('valueOf');
 			// Now finally define beans as well. Look up methods on dest, for
 			// support of this.base() (See above).
-			for (var i = 0, l = beans && beans.length; i < l; i++)
-				try {
-					var bean = beans[i],
-						part = bean[1];
-					field(bean[0], {
-						get: dest['get' + part] || dest['is' + part],
-						set: dest['set' + part]
-					}, true);
-				} catch (e) {}
+			for (var i = 0, l = beans.length; i < l; i++) {
+				var bean = beans[i],
+					part = bean[1];
+				field(bean[0], {
+					get: dest['get' + part] || dest['is' + part],
+					set: dest['set' + part]
+				}, true);
+			}
 		}
 		return dest;
 	}
