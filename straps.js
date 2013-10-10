@@ -133,8 +133,11 @@ var Base = new function() {
 				if (isFunc && beans && val.length === 0
 						&& (bean = name.match(/^(get|is)(([A-Z])(.*))$/)))
 					beans.push([ bean[3].toLowerCase() + bean[4], bean[2] ]);
-				// No need to look up getter if this is a function already.
-				if (!res || isFunc || !res.get)
+				// No need to create accessor description if it is one already.
+				// It is considered a description if it is an object with a get
+				// function that has zero parameters.
+				if (!res || isFunc || !res.get || typeof res.get !== 'function'
+						|| res.get.length !== 0)
 					res = { value: res, writable: true };
 				// Only set/change configurable and enumerable if this field is
 				// configurable
