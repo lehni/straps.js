@@ -299,14 +299,9 @@ var Base = new function() {
 			// Expose some local privates as Base generics.
 			each: each,
 			clone: clone,
+			create: create,
 			define: define,
 			describe: describe,
-
-			// Base.create does something different from Object.create:
-			// It works on constructors and uses their prototype.
-			create: function(ctor) {
-				return create(ctor.prototype);
-			},
 
 			/**
 			 * Returns true if obj is a plain JavaScript object literal, or a 
