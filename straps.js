@@ -196,15 +196,25 @@ var Base = new function() {
 		return bind;
 	}
 
+	function copy(dest, source) {
+		for (var i in source)
+			if (source.hasOwnProperty(i))
+				dest[i] = source[i];
+		return dest;
+	}
+
 	function clone(obj) {
-		return each(obj, function(val, i) {
-			this[i] = val;
-		}, new obj.constructor());
+		return copy(new obj.constructor(), obj);
 	}
 
 	// Inject into new ctor object that's passed to inject(), and then returned
 	// as the Base class.
-	return inject(function Base() {}, {
+	return inject(function Base() {
+		// Define a constructor that merges in all the fields of the passed
+		// objects using copy()
+		for (var i = 0, l = arguments.length; i < l; i++)
+			copy(this, arguments[i]);
+	}, {
 		inject: function(src/*, ... */) {
 			if (src) {
 				var proto = this.prototype,
@@ -288,20 +298,27 @@ var Base = new function() {
 		},
 
 		/**
-		 * Creates a new object of the same type and copies over all
-		 * name / value pairs from this object.
+		 * General purpose clone function that delegates cloning to the
+		 * constructor that receives the object to be cloned as the first
+		 * argument.
+		 * NOTE: #clone() needs to be overridden in any class that requires
+		 * other cloning behavior.
 		 */
 		clone: function() {
-			return clone(this);
+			return new this.constructor(this);
 		},
 
 		statics: {
 			// Expose some local privates as Base generics.
 			each: each,
-			clone: clone,
 			create: create,
 			define: define,
 			describe: describe,
+			copy: copy,
+
+			clone: function(obj) {
+				return copy(new obj.constructor(), obj);
+			},
 
 			/**
 			 * Returns true if obj is a plain JavaScript object literal, or a 
