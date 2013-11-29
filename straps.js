@@ -192,16 +192,11 @@ var Base = new function() {
 		// NOTE: The correct check would call describe(obj, 'length') and look
 		// for typeof res.value === 'number', but it's twice as slow on Chrome
 		// and Firefox (WebKit does well), so this should do for now.
-		try {
-			if (obj)
-				('length' in obj && !obj.getLength
-						&& typeof obj.length === 'number'
-					? forEach
-					: forIn).call(obj, iter, bind = bind || obj);
-		} catch (e) {
-			if (e !== Base.stop)
-				throw e;
-		}
+		if (obj)
+			('length' in obj && !obj.getLength
+					&& typeof obj.length === 'number'
+				? forEach
+				: forIn).call(obj, iter, bind = bind || obj);
 		return bind;
 	}
 
@@ -351,15 +346,7 @@ var Base = new function() {
 					if (arguments[i] !== undefined)
 						return arguments[i];
 				return null;
-			},
-
-			/**
-			 * Base.stop can be thrown by iterators passed to each()
-			 *
-			 * continue (Base.next) is not implemented, as the same can achieved
-			 * by using return in the iterator.
-			 */
-			stop: {}
+			}
 		}
 	});
 };
