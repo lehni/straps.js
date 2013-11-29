@@ -184,11 +184,20 @@ var Base = new function() {
 		return dest;
 	}
 
-	function each(obj, iter, bind, asArray) {
+	function each(obj, iter, bind) {
+		// To support both array-like structures and plain objects, use a simple
+		// hack to filter out Base objects with #length getters in the
+		// #length-base array-like check for now, by assuming these getters are
+		// produced by #getLength beans.
+		// NOTE: The correct check would call describe(obj, 'length') and look
+		// for typeof res.value === 'number', but it's twice as slow on Chrome
+		// and Firefox (WebKit does well), so this should do for now.
 		try {
 			if (obj)
-				(asArray || typeof asArray === 'undefined' && isArray(obj)
-					? forEach : forIn).call(obj, iter, bind = bind || obj);
+				('length' in obj && !obj.getLength
+						&& typeof obj.length === 'number'
+					? forEach
+					: forIn).call(obj, iter, bind = bind || obj);
 		} catch (e) {
 			if (e !== Base.stop)
 				throw e;
