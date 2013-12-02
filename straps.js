@@ -201,10 +201,6 @@ var Base = new function() {
 		return dest;
 	}
 
-	function clone(obj) {
-		return copy(new obj.constructor(), obj);
-	}
-
 	// Inject into new ctor object that's passed to inject(), and then returned
 	// as the Base class.
 	return inject(function Base() {
