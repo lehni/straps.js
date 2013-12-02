@@ -17,11 +17,9 @@
 
 var Base = new function() {
 	var hidden = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
-		toString = Object.prototype.toString,
-		proto = Array.prototype,
-		slice = proto.slice,
+		slice = [].slice,
 
-		forEach = proto.forEach || function(iter, bind) {
+		forEach = [].forEach || function(iter, bind) {
 			for (var i = 0, l = this.length; i < l; i++)
 				iter.call(bind, this[i], i, this);
 		},
@@ -33,10 +31,6 @@ var Base = new function() {
 			for (var i in this)
 				if (this.hasOwnProperty(i))
 					iter.call(bind, this[i], i, this);
-		},
-
-		isArray = Array.isArray = Array.isArray || function(obj) {
-			return toString.call(obj) === '[object Array]';
 		},
 
 		// A short-cut to a simplified version of Object.create that only
