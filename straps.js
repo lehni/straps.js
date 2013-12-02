@@ -16,8 +16,7 @@
  */
 
 var Base = new function() {
-	var hidden = /^(statics|generics|preserve|enumerable|prototype|toString|valueOf)$/,
-		slice = [].slice,
+	var hidden = /^(statics|preserve|enumerable|prototype|toString|valueOf)$/,
 
 		forEach = [].forEach || function(iter, bind) {
 			for (var i = 0, l = this.length; i < l; i++)
@@ -81,7 +80,7 @@ var Base = new function() {
 	 * Private function that injects functions from src into dest, overriding
 	 * (and inherinting from) base.
 	 */
-	function inject(dest, src, enumerable, base, preserve, generics) {
+	function inject(dest, src, enumerable, base, preserve) {
 		var beans;
 
 		/**
@@ -91,7 +90,7 @@ var Base = new function() {
 		 * in src, and if the one in src is actually calling base through base.
 		 * The string of the function is parsed for this.base to detect calls.
 		 */
-		function field(name, val, dontCheck, generics) {
+		function field(name, val, dontCheck) {
 			// This does even work for prop: 0, as it will just be looked up
 			// again through describe.
 			var val = val || (val = describe(src, name))
@@ -142,26 +141,16 @@ var Base = new function() {
 				}
 				define(dest, name, res);
 			}
-			if (generics && isFunc && (!preserve || !generics[name])) {
-				generics[name] = function(bind) {
-					// Do not call Array.slice generic here, as on Safari,
-					// this seems to confuse scopes (calling another
-					// generic from generic-producing code).
-					return bind && dest[name].apply(bind,
-							slice.call(arguments, 1));
-				};
-			}
 		}
 		// Iterate through all definitions in src now and call field() for each.
 		if (src) {
 			beans = [];
 			for (var name in src)
 				if (src.hasOwnProperty(name) && !hidden.test(name))
-					field(name, null, true, generics);
+					field(name, null, true);
 			// IE (and some other browsers?) never enumerate these, even  if
-			// they are simply set on an object. Force their creation. Do not
-			// create generics for these, and check them for not being defined
-			// (by passing undefined for dontCheck).
+			// they are simply set on an object. Force their creation. Ccheck
+			// them for not being defined (by passing undefined for dontCheck).
 			field('toString');
 			field('valueOf');
 			// Now finally define beans as well. Look up methods on dest, for
@@ -218,7 +207,7 @@ var Base = new function() {
 					statics = src.statics === true ? src : src.statics;
 				if (statics != src)
 					inject(proto, src, src.enumerable, base && base.prototype,
-							src.preserve, src.generics && this);
+							src.preserve);
 				// Define new static fields as enumerable, and inherit from
 				// base. enumerable is necessary so they can be copied over from
 				// base, and it does not harm to have enumerable properties in
@@ -303,7 +292,7 @@ var Base = new function() {
 		},
 
 		statics: {
-			// Expose some local privates as Base generics.
+			// Expose some local privates as static functions on Base.
 			each: each,
 			create: create,
 			define: define,
