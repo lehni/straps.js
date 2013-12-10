@@ -237,6 +237,8 @@ var Base = new function() {
 				base.apply(this, arguments);
 			};
 			ctor.prototype = create(this.prototype);
+			// Expose base property on constructor functions as well.
+			ctor.base = base;
 			// The new prototype extends the constructor on which extend is
 			// called. Fix constructor.
 			define(ctor.prototype, 'constructor',
