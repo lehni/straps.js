@@ -114,17 +114,18 @@ var Base = new function() {
 				// overriding) through #base:
 				if (isFunc && prev)
 					val.base = prev;
-				// Produce bean properties if getters are specified. This does
-				// not produce properties for setter-only properties. Just
-				// collect beans for now, and look them up in dest at the end of
-				// fields injection. This ensures base works for beans too, and
-				// inherits setters for redefined getters in subclasses. Only
-				// add getter beans if they do not expect arguments. Functions
-				// that should function both with optional arguments and as
-				// beans should not declare the parameters and use the arguments
-				// array internally instead.
-				if (isFunc && beans && val.length === 0
-						&& (bean = name.match(/^(get|is)(([A-Z])(.*))$/)))
+				// Produce bean properties if getters or setters are specified.
+				// Just collect beans for now, and look them up in dest at the
+				// end of fields injection. This ensures base works for beans
+				// too, and inherits setters for redefined getters in
+				// subclasses. Only add getter beans if they do not expect
+				// arguments.
+				// Functions that should function both with optional arguments
+				// and as beans should not declare the parameters and use the
+				// arguments array internally instead.
+				if (isFunc && beans
+						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/))
+						&& val.length === (bean[1] === 'set' ? 1 : 0))
 					beans.push([ bean[3].toLowerCase() + bean[4], bean[2] ]);
 				// No need to create accessor description if it is one already.
 				// It is considered a description if it is an object with a get
