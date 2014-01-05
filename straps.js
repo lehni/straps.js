@@ -7,7 +7,7 @@
  * Distributed under the MIT license.
  *
  * straps.js was created by extracting and simplifying the inheritance framework
- * from boostrap.js, a JavaScript DOM library, also published by Juerg Lehni:
+ * from boostrap.js, a JavaScript DOM library, also created by Juerg Lehni:
  * https://github.com/lehni/bootstrap.js
  *
  * Inspirations:
@@ -126,7 +126,7 @@ var Base = new function() {
 				if (isFunc && beans
 						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/))
 						&& val.length === (bean[1] === 'set' ? 1 : 0))
-					beans.push([ bean[3].toLowerCase() + bean[4], bean[2] ]);
+					beans[bean[3].toLowerCase() + bean[4]] = bean[2];
 				// No need to create accessor description if it is one already.
 				// It is considered a description if it is an object with a get
 				// function that has zero parameters.
@@ -145,7 +145,7 @@ var Base = new function() {
 		}
 		// Iterate through all definitions in src now and call field() for each.
 		if (src) {
-			beans = [];
+			beans = {};
 			for (var name in src)
 				if (src.hasOwnProperty(name) && !hidden.test(name))
 					field(name, null, true);
@@ -156,13 +156,14 @@ var Base = new function() {
 			field('valueOf');
 			// Now finally define beans as well. Look up methods on dest, for
 			// support of this.base() (See above).
-			for (var i = 0, l = beans.length; i < l; i++) {
-				var bean = beans[i],
-					part = bean[1];
-				field(bean[0], {
-					get: dest['get' + part] || dest['is' + part],
-					set: dest['set' + part]
-				}, true);
+			for (var name in beans) {
+				var part = beans[name],
+					set = dest['set' + part],
+					// Convention: 'isName' is only considered a bean if there
+					// is also a setter for it!
+					get = dest['get' + part] || set && dest['is' + part];
+				if (get)
+					field(name, { get: get, set: set }, true);
 			}
 		}
 		return dest;
