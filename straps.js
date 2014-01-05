@@ -123,10 +123,10 @@ var Base = new function() {
 						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/)))
 					beans[bean[3].toLowerCase() + bean[4]] = bean[2];
 				// No need to create accessor description if it is one already.
-				// It is considered a description if it is an object with a get
-				// function that has zero parameters.
+				// It is considered a description if it is a plain object with a
+				// get function.
 				if (!res || isFunc || !res.get || typeof res.get !== 'function'
-						|| res.get.length !== 0)
+						|| !Base.isPlainObject(res))
 					res = { value: res, writable: true };
 				// Only set/change configurable and enumerable if this field is
 				// configurable
