@@ -115,17 +115,12 @@ var Base = new function() {
 				if (isFunc && prev)
 					val.base = prev;
 				// Produce bean properties if getters or setters are specified.
-				// Just collect beans for now, and look them up in dest at the
-				// end of fields injection. This ensures base works for beans
-				// too, and inherits setters for redefined getters in
-				// subclasses. Only add getter beans if they do not expect
-				// arguments.
-				// Functions that should function both with optional arguments
-				// and as beans should not declare the parameters and use the
-				// arguments array internally instead.
+				// Just collect potential beans for now, and look them up in
+				// dest at the end of fields injection. This ensures base works
+				// for beans too, and inherits setters for redefined getters in
+				// subclasses.
 				if (isFunc && beans
-						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/))
-						&& val.length === (bean[1] === 'set' ? 1 : 0))
+						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/)))
 					beans[bean[3].toLowerCase() + bean[4]] = bean[2];
 				// No need to create accessor description if it is one already.
 				// It is considered a description if it is an object with a get
@@ -162,7 +157,11 @@ var Base = new function() {
 					// Convention: 'isName' is only considered a bean if there
 					// is also a setter for it!
 					get = dest['get' + part] || set && dest['is' + part];
-				if (get)
+				// Convention: Assume that if a potential getter has no
+				// arguments and there is no setter, it is a read-only bean.
+				// If there is both a getter and a setter, do not look at 
+				// arguments count at all.
+				if (get && (get.length === 0 || set))
 					field(name, { get: get, set: set }, true);
 			}
 		}
