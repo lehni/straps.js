@@ -16,7 +16,7 @@
  */
 
 var Base = new function() {
-	var hidden = /^(statics|preserve|enumerable|prototype|toString|valueOf)$/,
+	var hidden = /^(statics|preserve|enumerable|prototype)$/,
 
 		forEach = [].forEach || function(iter, bind) {
 			for (var i = 0, l = this.length; i < l; i++)
@@ -89,7 +89,7 @@ var Base = new function() {
 		 * This is only needed if the function in base is different from the one
 		 * in src, and if the one in src is actually calling base through base.
 		 */
-		function field(name, desc, dontCheck) {
+		function field(name, desc) {
 			// This does even work for prop: 0, as it will just be looked up
 			// again through describe.
 			desc = desc || describe(src, name);
@@ -108,7 +108,7 @@ var Base = new function() {
 						? (val && val.get ? name in dest : dest[name])
 						: null,
 				bean;
-			if ((dontCheck || src.hasOwnProperty(name)) && !(preserve && prev)) {
+			if (!preserve || !prev) {
 				// Expose the 'super' function (meaning the one this function is
 				// overriding) through #base:
 				if (isFunc && prev)
@@ -141,12 +141,8 @@ var Base = new function() {
 		if (src) {
 			beans = {};
 			for (var name in src)
-				if (!hidden.test(name))
+				if (src.hasOwnProperty(name) && !hidden.test(name))
 					field(name);
-			// IE (and some other browsers?) never enumerate these, even  if
-			// they are simply set on an object.
-			field('toString');
-			field('valueOf');
 			// Now finally define beans as well.
 			for (var name in beans) {
 				var part = beans[name],
@@ -159,7 +155,7 @@ var Base = new function() {
 				// If there is both a getter and a setter, do not look at
 				// arguments count at all.
 				if (get && (get.length === 0 || set))
-					field(name, { get: get, set: set }, true);
+					field(name, { get: get, set: set });
 			}
 		}
 		return dest;
