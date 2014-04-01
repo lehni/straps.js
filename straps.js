@@ -16,8 +16,7 @@
  */
 
 var Base = new function() {
-	var hidden = /^(statics|preserve|enumerable|prototype)$/,
-
+	var hidden = /^(statics|beans|preserve|enumerable)$/,
 		forEach = [].forEach || function(iter, bind) {
 			for (var i = 0, l = this.length; i < l; i++)
 				iter.call(bind, this[i], i, this);
@@ -81,7 +80,9 @@ var Base = new function() {
 	 * (and inherinting from) base.
 	 */
 	function inject(dest, src, enumerable, base, preserve) {
-		var beans;
+		// Support a global setting for beans creation on injection, can be
+		// overriden per injection object literal.
+		var beans = pick(src && src.beans, Base && Base.beans) && {};
 
 		/**
 		 * Private function that injects one field with given name and checks if
@@ -89,11 +90,11 @@ var Base = new function() {
 		 * This is only needed if the function in base is different from the one
 		 * in src, and if the one in src is actually calling base through base.
 		 */
-		function field(name, desc) {
+		function field(name, val) {
 			// This does even work for prop: 0, as it will just be looked up
 			// again through describe.
-			desc = desc || describe(src, name);
-			var val = desc.get ? desc : desc.value;
+			val = val || (val = describe(src, name))
+					&& (val.get ? val : val.value);
 			// Allow aliases to properties with different names, by having
 			// string values starting with '#'
 			if (typeof val === 'string' && val[0] === '#')
@@ -139,11 +140,11 @@ var Base = new function() {
 		}
 		// Iterate through all definitions in src now and call field() for each.
 		if (src) {
-			beans = {};
-			for (var name in src)
+			for (var name in src) {
 				if (src.hasOwnProperty(name) && !hidden.test(name))
 					field(name);
-			// Now finally define beans as well.
+			}
+			// Now process the beans as well.
 			for (var name in beans) {
 				var part = beans[name],
 					set = dest['set' + part],
@@ -184,6 +185,12 @@ var Base = new function() {
 		return dest;
 	}
 
+	function pick() {
+		for (var i = 0, l = arguments.length; i < l; i++)
+			if (arguments[i] !== undefined)
+				return arguments[i];
+	}
+
 	// Inject into new ctor object that's passed to inject(), and then returned
 	// as the Base class.
 	return inject(function Base() {
@@ -199,7 +206,7 @@ var Base = new function() {
 					// Allow the whole scope to just define statics by defining
 					// statics: true.
 					statics = src.statics === true ? src : src.statics;
-				if (statics != src)
+				if (statics !== src)
 					inject(proto, src, src.enumerable, base && base.prototype,
 							src.preserve);
 				// Define new static fields as enumerable, and inherit from
@@ -299,6 +306,12 @@ var Base = new function() {
 			},
 
 			/**
+			* Returns the first argument that is defined. null is counted as
+			* defined too, as !== undefined is used for comparisons.
+			*/
+			pick: pick,
+
+			/**
 			 * Returns true if obj is a plain JavaScript object literal, or a
 			 * plain Base object, as produced by Base.merge().
 			 */
@@ -309,17 +322,6 @@ var Base = new function() {
 				// or another vm context in node.js).
 				return ctor && (ctor === Object || ctor === Base
 						|| ctor.name === 'Object');
-			},
-
-			/**
-			 * Returns the first argument that is defined. null is counted as
-			 * defined too, as !== undefined is used for comparisons.
-			 */
-			pick: function() {
-				for (var i = 0, l = arguments.length; i < l; i++)
-					if (arguments[i] !== undefined)
-						return arguments[i];
-				return null;
 			}
 		}
 	});
