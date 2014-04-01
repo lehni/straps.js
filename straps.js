@@ -88,28 +88,27 @@ var Base = new function() {
 		 * the field is a function that needs to be wrapped for calls of base().
 		 * This is only needed if the function in base is different from the one
 		 * in src, and if the one in src is actually calling base through base.
-		 * The string of the function is parsed for this.base to detect calls.
 		 */
-		function field(name, val, dontCheck) {
+		function field(name, desc, dontCheck) {
 			// This does even work for prop: 0, as it will just be looked up
 			// again through describe.
-			var val = val || (val = describe(src, name))
-					&& (val.get ? val : val.value);
+			desc = desc || describe(src, name);
+			var val = desc.get ? desc : desc.value;
 			// Allow aliases to properties with different names, by having
 			// string values starting with '#'
 			if (typeof val === 'string' && val[0] === '#')
 				val = dest[val.substring(1)] || val;
 			var isFunc = typeof val === 'function',
 				res = val,
-				// Only lookup previous value if we preserve or define a
-				// function that might need it for this.base(). If we're
-				// defining a getter, don't lookup previous value, but look if
+				// Only lookup previous value if we preserve existing entries or
+				// define a function that might need it for Function#base. If
+				// a getter is defined, don't lookup previous value, but look if
 				// the property exists (name in dest) and store result in prev
 				prev = preserve || isFunc
-					? (val && val.get ? name in dest : dest[name]) : null,
+						? (val && val.get ? name in dest : dest[name])
+						: null,
 				bean;
-			if ((dontCheck || val !== undefined && src.hasOwnProperty(name))
-					&& (!preserve || !prev)) {
+			if ((dontCheck || src.hasOwnProperty(name)) && !(preserve && prev)) {
 				// Expose the 'super' function (meaning the one this function is
 				// overriding) through #base:
 				if (isFunc && prev)
@@ -122,7 +121,7 @@ var Base = new function() {
 				if (isFunc && beans
 						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/)))
 					beans[bean[3].toLowerCase() + bean[4]] = bean[2];
-				// No need to create accessor description if it is one already.
+				// No need to create accessor description if it already is one.
 				// It is considered a description if it is a plain object with a
 				// get function.
 				if (!res || isFunc || !res.get || typeof res.get !== 'function'
@@ -142,15 +141,13 @@ var Base = new function() {
 		if (src) {
 			beans = {};
 			for (var name in src)
-				if (src.hasOwnProperty(name) && !hidden.test(name))
-					field(name, null, true);
+				if (!hidden.test(name))
+					field(name);
 			// IE (and some other browsers?) never enumerate these, even  if
-			// they are simply set on an object. Force their creation. Ccheck
-			// them for not being defined (by passing undefined for dontCheck).
+			// they are simply set on an object.
 			field('toString');
 			field('valueOf');
-			// Now finally define beans as well. Look up methods on dest, for
-			// support of this.base() (See above).
+			// Now finally define beans as well.
 			for (var name in beans) {
 				var part = beans[name],
 					set = dest['set' + part],
@@ -159,7 +156,7 @@ var Base = new function() {
 					get = dest['get' + part] || set && dest['is' + part];
 				// Convention: Assume that if a potential getter has no
 				// arguments and there is no setter, it is a read-only bean.
-				// If there is both a getter and a setter, do not look at 
+				// If there is both a getter and a setter, do not look at
 				// arguments count at all.
 				if (get && (get.length === 0 || set))
 					field(name, { get: get, set: set }, true);
@@ -258,8 +255,7 @@ var Base = new function() {
 		// to subclasses of Base through Base.inject() / extend().
 	}, true).inject({
 		/**
-		 * Injects the fields from the given object, adding this.base()
-		 * functionality
+		 * Injects the fields from the given object.
 		 */
 		inject: function(/* src, ... */) {
 			for (var i = 0, l = arguments.length; i < l; i++)
@@ -307,7 +303,7 @@ var Base = new function() {
 			},
 
 			/**
-			 * Returns true if obj is a plain JavaScript object literal, or a 
+			 * Returns true if obj is a plain JavaScript object literal, or a
 			 * plain Base object, as produced by Base.merge().
 			 */
 			isPlainObject: function(obj) {
