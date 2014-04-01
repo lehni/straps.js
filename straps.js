@@ -154,8 +154,13 @@ var Base = new function() {
 				// Convention: Assume that if a potential getter has no
 				// arguments and there is no setter, it is a read-only bean.
 				// If there is both a getter and a setter, do not look at
-				// arguments count at all.
-				if (get && (get.length === 0 || set))
+				// arguments count at all and produce the bean.
+				// Allow potential bean functions to expliticely turn on/off
+				// bean behavior on a per function basis by setting the bean
+				// property to true/false on the getter function, e.g. by using:
+				// var get = Base.set(function() {}, { bean: true })
+				if (get && get.bean !== false
+					 	&& (get.length === 0 || set || get.bean === true))
 					field(name, { get: get, set: set });
 			}
 		}
@@ -178,11 +183,11 @@ var Base = new function() {
 		return bind;
 	}
 
-	function copy(dest, source) {
-		for (var i in source)
-			if (source.hasOwnProperty(i))
-				dest[i] = source[i];
-		return dest;
+	function set(obj, props) {
+		for (var i in props)
+			if (props.hasOwnProperty(i))
+				obj[i] = props[i];
+		return obj;
 	}
 
 	function pick() {
@@ -195,9 +200,9 @@ var Base = new function() {
 	// as the Base class.
 	return inject(function Base() {
 		// Define a constructor that merges in all the fields of the passed
-		// objects using copy()
+		// objects using set()
 		for (var i = 0, l = arguments.length; i < l; i++)
-			copy(this, arguments[i]);
+			set(this, arguments[i]);
 	}, {
 		inject: function(src/*, ... */) {
 			if (src) {
@@ -299,10 +304,10 @@ var Base = new function() {
 			create: create,
 			define: define,
 			describe: describe,
-			copy: copy,
+			set: set,
 
 			clone: function(obj) {
-				return copy(new obj.constructor(), obj);
+				return set(new obj.constructor(), obj);
 			},
 
 			/**
