@@ -1,12 +1,12 @@
 {
-	"name": "straps",
-	"version": "1.4.3",
-	"main": "straps.js",
-	"description": "Class inheritance library with support for bean-style accessors.",
-    "author": "Jürg Lehni <juerg@lehni.org> (http://lehni.org)",
-    "license": "MIT",
-	"homepage": "https://github.com/lehni/straps.js",
-	"repository": "git://github.com/lehni/straps.js",
-    "bugs": "https://github.com/lehni/straps.js/issues",
-	"keywords": ["javascript", "inheritance", "class", "beans", "accessor", "AOP"]  
+  "name": "straps",
+  "version": "1.4.3",
+  "main": "straps.js",
+  "description": "Class inheritance library with support for bean-style accessors.",
+  "author": "Jürg Lehni <juerg@lehni.org> (http://lehni.org)",
+  "license": "MIT",
+  "homepage": "https://github.com/lehni/straps.js",
+  "repository": "git://github.com/lehni/straps.js",
+  "bugs": "https://github.com/lehni/straps.js/issues",
+  "keywords": ["javascript", "inheritance", "class", "beans", "accessor", "AOP"]  
 }

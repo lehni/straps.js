@@ -17,6 +17,7 @@
 
 var Base = new function() {
 	var hidden = /^(statics|beans|preserve|enumerable)$/,
+
 		forEach = [].forEach || function(iter, bind) {
 			for (var i = 0, l = this.length; i < l; i++)
 				iter.call(bind, this[i], i, this);
@@ -160,7 +161,7 @@ var Base = new function() {
 				// property to true/false on the getter function, e.g. by using:
 				// var get = Base.set(function() {}, { bean: true })
 				if (get && get.bean !== false
-					 	&& (get.length === 0 || set || get.bean === true))
+						&& (get.length === 0 || set || get.bean === true))
 					field(name, { get: get, set: set });
 			}
 		}
