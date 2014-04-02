@@ -78,16 +78,15 @@ var Base = new function() {
 
 	/**
 	 * Private function that injects functions from src into dest, overriding
-	 * (and inherinting from) base.
+	 * the previous definition, preserving a link to it through Function#base.
 	 */
-	function inject(dest, src, enumerable, beans, preserve, all, base) {
+	function inject(dest, src, enumerable, beans, preserve) {
 		var beansNames = {};
 
 		/**
 		 * Private function that injects one field with given name and checks if
-		 * the field is a function that needs to be wrapped for calls of base().
-		 * This is only needed if the function in base is different from the one
-		 * in src, and if the one in src is actually calling base through base.
+		 * the field is a function with a previous definition that we need to
+		 * link to through Function#base.
 		 */
 		function field(name, val) {
 			// This does even work for prop: 0, as it will just be looked up
@@ -110,7 +109,7 @@ var Base = new function() {
 				bean;
 			if (!preserve || !prev) {
 				// Expose the 'super' function (meaning the one this function is
-				// overriding) through #base:
+				// overriding) through Function#base:
 				if (isFunc && prev)
 					val.base = prev;
 				// Produce bean properties if getters or setters are specified.
@@ -140,7 +139,7 @@ var Base = new function() {
 		// Iterate through all definitions in src now and call field() for each.
 		if (src) {
 			for (var name in src) {
-				if (src.hasOwnProperty(name) && (all || !hidden.test(name)))
+				if (src.hasOwnProperty(name) && !hidden.test(name))
 					field(name);
 			}
 			// Now process the beans as well.
@@ -196,26 +195,19 @@ var Base = new function() {
 	}, {
 		inject: function(src/*, ... */) {
 			if (src) {
-				var proto = this.prototype,
-					base = Object.getPrototypeOf(proto).constructor,
-					// Allow the whole scope to just define statics by defining
-					// statics: true.
-					statics = src.statics === true ? src : src.statics,
+				// Allow the whole scope to just define statics by defining
+				// `statics: true`
+				var statics = src.statics === true ? src : src.statics,
 					beans = src.beans,
 					preserve = src.preserve;
-				if (statics !== src) {
-					// Pass false for all, to filter hidden fields.
-					inject(proto, src, src.enumerable, beans, preserve, false,
-							base && base.prototype);
-				}
+				if (statics !== src)
+					inject(this.prototype, src, src.enumerable, beans, preserve);
 				// Define new static fields as enumerable, and inherit from
 				// base. enumerable is necessary so they can be copied over from
 				// base, and it does not harm to have enumerable properties in
 				// the constructor. Use the preserve setting in src.preserve for
 				// statics too, not their own.
-				// Also don't filter hidden fields, since we allow the setting
-				// of beans on the constructor.
-				inject(this, statics, true, beans, preserve, true, base);
+				inject(this, statics, true, beans, preserve);
 			}
 			// If there are more than one argument, loop through them and call
 			// inject again. Do not simple inline the above code in one loop,
