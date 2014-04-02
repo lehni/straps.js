@@ -16,7 +16,7 @@
  */
 
 var Base = new function() {
-	var hidden = /^(statics|beans|preserve|enumerable)$/,
+	var hidden = /^(statics|enumerable|beans|preserve)$/,
 
 		forEach = [].forEach || function(iter, bind) {
 			for (var i = 0, l = this.length; i < l; i++)
@@ -80,10 +80,8 @@ var Base = new function() {
 	 * Private function that injects functions from src into dest, overriding
 	 * (and inherinting from) base.
 	 */
-	function inject(dest, src, enumerable, base, preserve) {
-		// Support a global setting for beans creation on injection, can be
-		// overriden per injection object literal.
-		var beans = pick(src && src.beans, Base && Base.beans) && {};
+	function inject(dest, src, enumerable, beans, preserve, all, base) {
+		var beansNames = {};
 
 		/**
 		 * Private function that injects one field with given name and checks if
@@ -120,9 +118,9 @@ var Base = new function() {
 				// dest at the end of fields injection. This ensures base works
 				// for beans too, and inherits setters for redefined getters in
 				// subclasses.
-				if (isFunc && beans
+				if (isFunc && beans !== false
 						&& (bean = name.match(/^([gs]et|is)(([A-Z])(.*))$/)))
-					beans[bean[3].toLowerCase() + bean[4]] = bean[2];
+					beansNames[bean[3].toLowerCase() + bean[4]] = bean[2];
 				// No need to create accessor description if it already is one.
 				// It is considered a description if it is a plain object with a
 				// get function.
@@ -142,26 +140,23 @@ var Base = new function() {
 		// Iterate through all definitions in src now and call field() for each.
 		if (src) {
 			for (var name in src) {
-				if (src.hasOwnProperty(name) && !hidden.test(name))
+				if (src.hasOwnProperty(name) && (all || !hidden.test(name)))
 					field(name);
 			}
 			// Now process the beans as well.
-			for (var name in beans) {
-				var part = beans[name],
+			for (var name in beansNames) {
+				// Simple Beans Convention:
+				// - If `beans: false` is specified, no beans are injected.
+				// - 'isName' is only considered a getter of a  bean accessor if
+				//   there is also a setter for it.
+				// - If a potential getter has no parameters, it forms a bean
+				//   accessor.
+				// - If `beans: true` is specified, the parameter count of a
+				//   potential getter is ignored and the bean is always created.
+				var part = beansNames[name],
 					set = dest['set' + part],
-					// Convention: 'isName' is only considered a bean if there
-					// is also a setter for it!
 					get = dest['get' + part] || set && dest['is' + part];
-				// Convention: Assume that if a potential getter has no
-				// arguments and there is no setter, it is a read-only bean.
-				// If there is both a getter and a setter, do not look at
-				// arguments count at all and produce the bean.
-				// Allow potential bean functions to expliticely turn on/off
-				// bean behavior on a per function basis by setting the bean
-				// property to true/false on the getter function, e.g. by using:
-				// var get = Base.set(function() {}, { bean: true })
-				if (get && get.bean !== false
-						&& (get.length === 0 || set || get.bean === true))
+				if (get && (beans === true || get.length === 0))
 					field(name, { get: get, set: set });
 			}
 		}
@@ -191,12 +186,6 @@ var Base = new function() {
 		return obj;
 	}
 
-	function pick() {
-		for (var i = 0, l = arguments.length; i < l; i++)
-			if (arguments[i] !== undefined)
-				return arguments[i];
-	}
-
 	// Inject into new ctor object that's passed to inject(), and then returned
 	// as the Base class.
 	return inject(function Base() {
@@ -211,16 +200,22 @@ var Base = new function() {
 					base = Object.getPrototypeOf(proto).constructor,
 					// Allow the whole scope to just define statics by defining
 					// statics: true.
-					statics = src.statics === true ? src : src.statics;
-				if (statics !== src)
-					inject(proto, src, src.enumerable, base && base.prototype,
-							src.preserve);
+					statics = src.statics === true ? src : src.statics,
+					beans = src.beans,
+					preserve = src.preserve;
+				if (statics !== src) {
+					// Pass false for all, to filter hidden fields.
+					inject(proto, src, src.enumerable, beans, preserve, false,
+							base && base.prototype);
+				}
 				// Define new static fields as enumerable, and inherit from
 				// base. enumerable is necessary so they can be copied over from
 				// base, and it does not harm to have enumerable properties in
 				// the constructor. Use the preserve setting in src.preserve for
 				// statics too, not their own.
-				inject(this, statics, true, base, src.preserve);
+				// Also don't filter hidden fields, since we allow the setting
+				// of beans on the constructor.
+				inject(this, statics, true, beans, preserve, true, base);
 			}
 			// If there are more than one argument, loop through them and call
 			// inject again. Do not simple inline the above code in one loop,
@@ -255,7 +250,7 @@ var Base = new function() {
 			// so they can be copied over again.
 			inject(ctor, this, true);
 			// Inject all the definitions in src. Use the new inject instead of
-			// the one in ctor, in case it was overriden. this is needed when
+			// the one in ctor, in case it was overridden. this is needed when
 			// overriding the static .inject(). But only inject if there's
 			// something to actually inject.
 			return arguments.length ? this.inject.apply(ctor, arguments) : ctor;
@@ -267,8 +262,11 @@ var Base = new function() {
 		 * Injects the fields from the given object.
 		 */
 		inject: function(/* src, ... */) {
-			for (var i = 0, l = arguments.length; i < l; i++)
-				inject(this, arguments[i], arguments[i].enumerable);
+			for (var i = 0, l = arguments.length; i < l; i++) {
+				var src = arguments[i];
+				if (src)
+					inject(this, src, src.enumerable, src.beans, src.preserve);
+			}
 			return this;
 		},
 
@@ -312,12 +310,6 @@ var Base = new function() {
 			},
 
 			/**
-			* Returns the first argument that is defined. null is counted as
-			* defined too, as !== undefined is used for comparisons.
-			*/
-			pick: pick,
-
-			/**
 			 * Returns true if obj is a plain JavaScript object literal, or a
 			 * plain Base object, as produced by Base.merge().
 			 */
@@ -328,6 +320,16 @@ var Base = new function() {
 				// or another vm context in node.js).
 				return ctor && (ctor === Object || ctor === Base
 						|| ctor.name === 'Object');
+			},
+
+			/**
+			* Returns the first argument that is defined. null is counted as
+			* defined too, as !== undefined is used for comparisons.
+			*/
+			pick: function() {
+				for (var i = 0, l = arguments.length; i < l; i++)
+					if (arguments[i] !== undefined)
+						return arguments[i];
 			}
 		}
 	});

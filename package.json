@@ -1,6 +1,6 @@
 {
   "name": "straps",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "main": "straps.js",
   "description": "Class inheritance library with support for bean-style accessors.",
   "author": "Jürg Lehni <juerg@lehni.org> (http://lehni.org)",
