@@ -278,6 +278,10 @@ var Base = new function() {
 			return each(this, iter, bind);
 		},
 
+		set: function(props) {
+			return set(this, props);
+		},
+
 		/**
 		 * General purpose clone function that delegates cloning to the
 		 * constructor that receives the object to be cloned as the first
