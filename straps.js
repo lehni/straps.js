@@ -146,8 +146,8 @@ var Base = new function() {
 			for (var name in beansNames) {
 				// Simple Beans Convention:
 				// - If `beans: false` is specified, no beans are injected.
-				// - 'isName' is only considered a getter of a  bean accessor if
-				//   there is also a setter for it.
+				// - `isName()` is only considered a getter of a  bean accessor
+				//   if there is also a setter for it.
 				// - If a potential getter has no parameters, it forms a bean
 				//   accessor.
 				// - If `beans: true` is specified, the parameter count of a
@@ -178,10 +178,10 @@ var Base = new function() {
 		return bind;
 	}
 
-	function set(obj, props) {
-		for (var i in props)
-			if (props.hasOwnProperty(i))
-				obj[i] = props[i];
+	function set(obj, props, exclude) {
+		for (var key in props)
+			if (props.hasOwnProperty(key) && (!exclude || !exclude[key]))
+				obj[key] = props[key];
 		return obj;
 	}
 
