@@ -180,7 +180,7 @@ var Base = new function() {
 
 	function set(obj, props, exclude) {
 		for (var key in props)
-			if (props.hasOwnProperty(key) && (!exclude || !exclude[key]))
+			if (props.hasOwnProperty(key) && !(exclude && exclude[key]))
 				obj[key] = props[key];
 		return obj;
 	}
