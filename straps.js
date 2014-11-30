@@ -319,13 +319,12 @@ var Base = new function() {
 			},
 
 			/**
-			* Returns the first argument that is defined. null is counted as
-			* defined too, as !== undefined is used for comparisons.
-			*/
-			pick: function() {
-				for (var i = 0, l = arguments.length; i < l; i++)
-					if (arguments[i] !== undefined)
-						return arguments[i];
+			 * Returns the 1st argument if it is defined, the 2nd otherwise.
+			 * `null` is counted as defined too, as !== undefined is used for
+			 * comparisons.
+			 */
+			pick: function(a, b) {
+				return a !== undefined ? a : b;
 			}
 		}
 	});
