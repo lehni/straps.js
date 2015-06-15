@@ -219,7 +219,8 @@ var Base = new function() {
 
         extend: function(/* src, ... */) {
             var base = this,
-                ctor;
+                ctor,
+                proto;
             // Look for an initialize function in all injection objects and use
             // it directly as the actual constructor.
             for (var i = 0, l = arguments.length; i < l; i++)
@@ -230,12 +231,10 @@ var Base = new function() {
             ctor = ctor || function() {
                 base.apply(this, arguments);
             };
-            ctor.prototype = create(this.prototype);
-            // Expose base property on constructor functions as well.
-            ctor.base = base;
+            proto = ctor.prototype = create(this.prototype);
             // The new prototype extends the constructor on which extend is
             // called. Fix constructor.
-            define(ctor.prototype, 'constructor',
+            define(proto, 'constructor',
                     { value: ctor, writable: true, configurable: true });
             // Copy over static fields, as prototype-like inheritance
             // is not possible for static fields. Mark them as enumerable
@@ -245,7 +244,14 @@ var Base = new function() {
             // the one in ctor, in case it was overridden. this is needed when
             // overriding the static .inject(). But only inject if there's
             // something to actually inject.
-            return arguments.length ? this.inject.apply(ctor, arguments) : ctor;
+            if (arguments.length)
+                this.inject.apply(ctor, arguments)
+            // Expose base property on constructor functions as well.
+            // Do this after everything else, to avoid incorrect overriding of
+            // `base` in inject() when creating long super call chains in
+            // constructors. 
+            ctor.base = base;
+            return ctor;
         }
         // Pass true for enumerable, so inject() and extend() can be passed on
         // to subclasses of Base through Base.inject() / extend().
