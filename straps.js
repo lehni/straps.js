@@ -102,8 +102,13 @@ var Base = new function() {
                 // Only lookup previous value if we preserve existing entries or
                 // define a function that might need it for Function#base. If
                 // a getter is defined, don't lookup previous value, but look if
-                // the property exists (name in dest) and store result in prev
-                prev = preserve || isFunc
+                // the property exists (name in dest) and store result in prev.
+                // Also check if the function doesn't already have #base defined
+                // in which case it shall not be overridden. This occurs when
+                // injecting statics from one constructor function to the next
+                // for inheritance. e.g. in Mootools' Function#extend would
+                // falsely be preserved up the inheritance chain through #base.
+                prev = preserve || isFunc && !val.base
                         ? (val && val.get ? name in dest : dest[name])
                         : null,
                 bean;
@@ -245,7 +250,7 @@ var Base = new function() {
             // overriding the static .inject(). But only inject if there's
             // something to actually inject.
             if (arguments.length)
-                this.inject.apply(ctor, arguments)
+                this.inject.apply(ctor, arguments);
             // Expose base property on constructor functions as well.
             // Do this after everything else, to avoid incorrect overriding of
             // `base` in inject() when creating long super call chains in
