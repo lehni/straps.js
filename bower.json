@@ -1,6 +1,5 @@
 {
   "name": "straps",
-  "version": "1.7.2",
   "description": "Class inheritance library with support for bean-style accessors.",
   "license": "MIT",
   "homepage": "https://github.com/lehni/straps.js",
@@ -9,10 +8,11 @@
     "url": "git://github.com/lehni/straps.js"
   },
   "bugs": "https://github.com/lehni/straps.js/issues",
-  "contributors": [
+  "authors": [
     "Jürg Lehni <juerg@lehni.org> (http://lehni.org)"
-  ],
+  ], 
   "main": "straps.js",
+  "ignore": "",
   "keywords": [
     "javascript",
     "inheritance",
