@@ -2,7 +2,7 @@
 
 Class inheritance library with support for bean-style accessors.
 
-Copyright © 2006 - 2013, Jürg Lehni.
+Copyright © 2006 - 2016, Jürg Lehni.
 
 straps.js was created by extracting and simplifying the inheritance framework
 from boostrap.js, a JavaScript DOM library, also created by Juerg Lehni:

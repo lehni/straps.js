@@ -37,6 +37,7 @@ var Base = new function() {
         create = Object.create || function(proto) {
             // From all browsers that do not offer Object.create(), we only
             // support Firefox 3.5 & 3.6, and this hack works there:
+            /* jshint -W103 */
             return { __proto__: proto };
         },
 

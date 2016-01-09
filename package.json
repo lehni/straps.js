@@ -1,6 +1,6 @@
 {
   "name": "straps",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "Class inheritance library with support for bean-style accessors.",
   "license": "MIT",
   "homepage": "https://github.com/lehni/straps.js",
