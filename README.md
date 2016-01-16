@@ -11,4 +11,4 @@ https://github.com/lehni/bootstrap.js
 The name was changed due to Twitter's introduction of their CSS framework with
 the same name.
 
-Documentation coming soon.
+Documentation coming one day, perhaps.

@@ -1,8 +1,8 @@
 /**
  * straps.js - Class inheritance library with support for bean-style accessors
  *
- * Copyright (c) 2006 - 2014 Juerg Lehni
- * http://lehni.org/
+ * Copyright (c) 2006 - 2016 Juerg Lehni
+ * http://scratchdisk.com/
  *
  * Distributed under the MIT license.
  *
