@@ -228,16 +228,20 @@ var Base = new function() {
                 ctor,
                 proto;
             // Look for an initialize function in all injection objects and use
-            // it directly as the actual constructor.
-            for (var i = 0, l = arguments.length; i < l; i++)
-                if (ctor = arguments[i].initialize)
-                    break;
+            // it directly as the actual constructor. Also look for prototype,
+            // in case a class wants to override it (e.g. Array inheritance).
+            for (var i = 0, obj, l = arguments.length;
+                    i < l && !(ctor && proto); i++) {
+                obj = arguments[i];
+                ctor = ctor || obj.initialize;
+                proto = proto || obj.prototype;
+            }
             // If no initialize function is provided, create a constructor that
             // simply calls the base constructor.
             ctor = ctor || function() {
                 base.apply(this, arguments);
             };
-            proto = ctor.prototype = create(this.prototype);
+            proto = ctor.prototype = proto || create(this.prototype);
             // The new prototype extends the constructor on which extend is
             // called. Fix constructor.
             define(proto, 'constructor',
