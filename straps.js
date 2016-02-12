@@ -197,7 +197,7 @@ var Base = new function() {
     // Inject into new ctor object that's passed to inject(), and then returned
     // as the Base class.
     return inject(function Base() {
-        return set(this, arguments, 0);    
+        set(this, arguments, 0);    
     }, {
         inject: function(src/*, ... */) {
             if (src) {
