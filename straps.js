@@ -184,20 +184,20 @@ var Base = new function() {
         return bind;
     }
 
-    function set(obj, props, exclude) {
-        for (var key in props)
-            if (props.hasOwnProperty(key) && !(exclude && exclude[key]))
-                obj[key] = props[key];
+    function set(obj, args, start) {
+        for (var i = start, l = args.length; i < l; i++) {
+            var props = args[i];
+            for (var key in props)
+                if (props.hasOwnProperty(key))
+                    obj[key] = props[key];
+        }
         return obj;
     }
 
     // Inject into new ctor object that's passed to inject(), and then returned
     // as the Base class.
     return inject(function Base() {
-        // Define a constructor that merges in all the fields of the passed
-        // objects using set()
-        for (var i = 0, l = arguments.length; i < l; i++)
-            set(this, arguments[i]);
+        return set(this, arguments, 0);    
     }, {
         inject: function(src/*, ... */) {
             if (src) {
@@ -294,8 +294,8 @@ var Base = new function() {
             return each(this, iter, bind);
         },
 
-        set: function(props) {
-            return set(this, props);
+        set: function() {
+            return set(this, arguments, 0);
         },
 
         /**
@@ -315,10 +315,13 @@ var Base = new function() {
             create: create,
             define: define,
             describe: describe,
-            set: set,
+
+            set: function(obj/*, ...*/) {
+                return set(obj, arguments, 1);
+            },
 
             clone: function(obj) {
-                return set(new obj.constructor(), obj);
+                return set(new obj.constructor(), arguments, 0);
             },
 
             /**
