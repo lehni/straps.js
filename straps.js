@@ -19,64 +19,48 @@ var Base = new function() {
     var hidden = /^(statics|enumerable|beans|preserve)$/,
 
         forEach = [].forEach || function(iter, bind) {
-            for (var i = 0, l = this.length; i < l; i++)
+            // Poly-fill for forEach
+            for (var i = 0, l = this.length; i < l; i++) {
                 iter.call(bind, this[i], i, this);
+            }
         },
 
         forIn = function(iter, bind) {
             // Do not use Object.keys for iteration as iterators might modify
             // the object we're iterating over, making the hasOwnProperty still
             // necessary.
-            for (var i in this)
+            for (var i in this) {
                 if (this.hasOwnProperty(i))
                     iter.call(bind, this[i], i, this);
-        },
-
-        // A short-cut to a simplified version of Object.create that only
-        // supports the first parameter (in the emulation):
-        create = Object.create || function(proto) {
-            // From all browsers that do not offer Object.create(), we only
-            // support Firefox 3.5 & 3.6, and this hack works there:
-            /* jshint -W103 */
-            return { __proto__: proto };
-        },
-
-        describe = Object.getOwnPropertyDescriptor || function(obj, name) {
-            // Emulate Object.getOwnPropertyDescriptor for outdated browsers
-            var get = obj.__lookupGetter__ && obj.__lookupGetter__(name);
-            return get
-                    ? { get: get, set: obj.__lookupSetter__(name),
-                        enumerable: true, configurable: true }
-                    : obj.hasOwnProperty(name)
-                        ? { value: obj[name], enumerable: true,
-                            configurable: true, writable: true }
-                        : null;
-        },
-
-        _define = Object.defineProperty || function(obj, name, desc) {
-            // Emulate Object.defineProperty for outdated browsers
-            if ((desc.get || desc.set) && obj.__defineGetter__) {
-                if (desc.get)
-                    obj.__defineGetter__(name, desc.get);
-                if (desc.set)
-                    obj.__defineSetter__(name, desc.set);
-            } else {
-                obj[name] = desc.value;
             }
-            return obj;
         },
 
-        define = function(obj, name, desc) {
-            // Both Safari and Chrome at one point ignored configurable = true
-            // and did not allow overriding of existing properties:
-            // https://code.google.com/p/chromium/issues/detail?id=72736
-            // https://bugs.webkit.org/show_bug.cgi?id=54289
-            // The workaround is to delete the property first.
-            // TODO: Remove this fix in July 2014, and use _define directly.
-            delete obj[name];
-            return _define(obj, name, desc);
-        };
+        create = Object.create,
+        describe = Object.getOwnPropertyDescriptor,
+        define = Object.defineProperty,
 
+        set = Object.assign || function(dst) {
+            // Poly-fill for Object.assign
+            for (var i = 1, l = arguments.length; i < l; i++) {
+                var src = arguments[i];
+                for (var key in src) {
+                    if (src.hasOwnProperty(key))
+                        dst[key] = src[key];
+                }
+            }
+        },
+
+        each = function(obj, iter, bind) {
+            // Convention: Enumerate over the object using forEach if it defines
+            // a value property named 'length' that contains an number value.
+            // Everything else is enumerated using forIn.
+            if (obj) {
+                var desc = describe(obj, 'length');
+                (desc && typeof desc.value === 'number' ? forEach : forIn)
+                    .call(obj, iter, bind = bind || obj);
+            }
+            return bind;
+        };
     /**
      * Private function that injects functions from src into dest, overriding
      * the previous definition, preserving a link to it through Function#base.
@@ -168,37 +152,19 @@ var Base = new function() {
         return dest;
     }
 
-    function each(obj, iter, bind) {
-        // To support both array-like structures and plain objects, use a simple
-        // hack to filter out Base objects with #length getters in the
-        // #length-base array-like check for now, by assuming these getters are
-        // produced by #getLength beans.
-        // NOTE: The correct check would call describe(obj, 'length') and look
-        // for typeof res.value === 'number', but it's twice as slow on Chrome
-        // and Firefox (WebKit does well), so this should do for now.
-        if (obj)
-            ('length' in obj && !obj.getLength
-                    && typeof obj.length === 'number'
-                ? forEach
-                : forIn).call(obj, iter, bind = bind || obj);
-        return bind;
-    }
-
-    function set(obj, args, start) {
-        for (var i = start, l = args.length; i < l; i++) {
-            var props = args[i];
-            for (var key in props)
-                if (props.hasOwnProperty(key))
-                    obj[key] = props[key];
+    // The Base constructor function.
+    function Base() {
+        for (var i = 0, l = arguments.length; i < l; i++) {
+            var src = arguments[i];
+            if (src)
+                set(this, src);
         }
-        return obj;
+        return this;
     }
 
-    // Inject into new ctor object that's passed to inject(), and then returned
-    // as the Base class.
-    return inject(function Base() {
-        set(this, arguments, 0);    
-    }, {
+    // First inject static methods into Base function that is passed to inject()
+    // and then returned as the Base class.
+    return inject(Base, {
         inject: function(src/*, ... */) {
             if (src) {
                 // Allow the whole scope to just define statics by defining
@@ -267,23 +233,48 @@ var Base = new function() {
         // to subclasses of Base through Base.inject() / extend().
     }, true).inject({
         /**
-         * Injects the fields from the given object.
+         * The Base constructor function.
+         *
+         * @param {...Object} objects one or multiple objects describing the
+         *     properties to set on the new created object.
+         */
+        initialize: Base,
+
+        /**
+         * Sets properties on this object from one ore passed multiply objects.
+         *
+         * @param {...Object} objects one or multiple objects describing the
+         *     properties to set on this object.
+         */
+        set: Base,
+
+        /**
+         * Injects the fields in this object from one ore passed multiply
+         * objects.
+         *
+         * @param {...Object} objects one or multiple objects describing the
+         *     fields to be injected in this object.
          */
         inject: function(/* src, ... */) {
             for (var i = 0, l = arguments.length; i < l; i++) {
                 var src = arguments[i];
-                if (src)
+                if (src) {
                     inject(this, src, src.enumerable, src.beans, src.preserve);
+                }
             }
             return this;
         },
 
         /**
-         * Returns a new object that inherits all properties from "this",
-         * through proper JS inheritance, not copying.
-         * Optionally, src and hide parameters can be passed to fill in the
-         * newly created object just like in inject(), to copy the behavior
-         * of Function.prototype.extend.
+         * Returns a new object that inherits all properties from `this`,
+         * through proper JS inheritance, without copying.
+         *
+         * Optionally, src parameters can be passed to inject into the newly
+         * created object just like in {@link #inject()}, reflecting the
+         * behavior of {@link Base.extend()}.
+         *
+         * @param {...Object} objects one or multiple objects describing the
+         *     fields to be injected in the newly created object.
          */
         extend: function(/* src, ... */) {
             var res = create(this);
@@ -292,10 +283,6 @@ var Base = new function() {
 
         each: function(iter, bind) {
             return each(this, iter, bind);
-        },
-
-        set: function() {
-            return set(this, arguments, 0);
         },
 
         /**
@@ -311,17 +298,14 @@ var Base = new function() {
 
         statics: {
             // Expose some local privates as static functions on Base.
+            set: set,
             each: each,
             create: create,
             define: define,
             describe: describe,
 
-            set: function(obj/*, ...*/) {
-                return set(obj, arguments, 1);
-            },
-
             clone: function(obj) {
-                return set(new obj.constructor(), arguments, 0);
+                return set(new obj.constructor(), obj);
             },
 
             /**
