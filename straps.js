@@ -48,6 +48,7 @@ var Base = new function() {
                         dst[key] = src[key];
                 }
             }
+            return dst;
         },
 
         each = function(obj, iter, bind) {
