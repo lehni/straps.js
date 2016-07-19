@@ -17,8 +17,13 @@
 
 var Base = new function() {
     var hidden = /^(statics|enumerable|beans|preserve)$/,
+        array = [],
+        slice = array.slice,
+        create = Object.create,
+        describe = Object.getOwnPropertyDescriptor,
+        define = Object.defineProperty,
 
-        forEach = [].forEach || function(iter, bind) {
+        forEach = array.forEach || function(iter, bind) {
             // Poly-fill for forEach
             for (var i = 0, l = this.length; i < l; i++) {
                 iter.call(bind, this[i], i, this);
@@ -34,10 +39,6 @@ var Base = new function() {
                     iter.call(bind, this[i], i, this);
             }
         },
-
-        create = Object.create,
-        describe = Object.getOwnPropertyDescriptor,
-        define = Object.defineProperty,
 
         set = Object.assign || function(dst) {
             // Poly-fill for Object.assign
@@ -62,6 +63,7 @@ var Base = new function() {
             }
             return bind;
         };
+
     /**
      * Private function that injects functions from src into dest, overriding
      * the previous definition, preserving a link to it through Function#base.
@@ -329,6 +331,10 @@ var Base = new function() {
              */
             pick: function(a, b) {
                 return a !== undefined ? a : b;
+            },
+
+            slice: function(list, begin, end) {
+                return slice.call(list, begin, end);
             }
         }
     });
