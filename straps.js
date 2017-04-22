@@ -117,14 +117,18 @@ var Base = new function() {
                 // It is considered a description if it is a plain object with a
                 // get function.
                 if (!res || isFunc || !res.get || typeof res.get !== 'function'
-                        || !Base.isPlainObject(res))
+                        || !Base.isPlainObject(res)) {
                     res = { value: res, writable: true };
+                }
                 // Only set/change configurable and enumerable if this field is
                 // configurable
                 if ((describe(dest, name)
                         || { configurable: true }).configurable) {
                     res.configurable = true;
-                    res.enumerable = enumerable;
+                    // If no value is provided for enumerable, the default is to
+                    // allow any property to be enumerable except the functions
+                    // that create bean properties.
+                    res.enumerable = enumerable != null ? enumerable : !bean;
                 }
                 define(dest, name, res);
             }
@@ -177,12 +181,9 @@ var Base = new function() {
                     preserve = src.preserve;
                 if (statics !== src)
                     inject(this.prototype, src, src.enumerable, beans, preserve);
-                // Define new static fields as enumerable, and inherit from
-                // base. enumerable is necessary so they can be copied over from
-                // base, and it does not harm to have enumerable properties in
-                // the constructor. Use the preserve setting in src.preserve for
-                // statics too, not their own.
-                inject(this, statics, true, beans, preserve);
+                // Use the preserve setting in src.preserve for statics too, not
+                // their own.
+                inject(this, statics, null, beans, preserve);
             }
             // If there are more than one argument, loop through them and call
             // inject again. Do not simple inline the above code in one loop,
@@ -216,9 +217,8 @@ var Base = new function() {
             define(proto, 'constructor',
                     { value: ctor, writable: true, configurable: true });
             // Copy over static fields, as prototype-like inheritance
-            // is not possible for static fields. Mark them as enumerable
-            // so they can be copied over again.
-            inject(ctor, this, true);
+            // is not possible for static fields.
+            inject(ctor, this);
             // Inject all the definitions in src. Use the new inject instead of
             // the one in ctor, in case it was overridden. this is needed when
             // overriding the static .inject(). But only inject if there's
@@ -228,13 +228,11 @@ var Base = new function() {
             // Expose base property on constructor functions as well.
             // Do this after everything else, to avoid incorrect overriding of
             // `base` in inject() when creating long super call chains in
-            // constructors. 
+            // constructors.
             ctor.base = base;
             return ctor;
         }
-        // Pass true for enumerable, so inject() and extend() can be passed on
-        // to subclasses of Base through Base.inject() / extend().
-    }, true).inject({
+    }).inject({
         /**
          * The Base constructor function.
          *
