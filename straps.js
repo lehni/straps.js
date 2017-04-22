@@ -83,7 +83,7 @@ var Base = new function() {
                     && (val.get ? val : val.value);
             // Allow aliases to properties with different names, by having
             // string values starting with '#'
-            if (typeof val === 'string' && val[0] === '#')
+            if (typeof val === 'string' && val.charAt(0) === '#')
                 val = dest[val.substring(1)] || val;
             var isFunc = typeof val === 'function',
                 res = val,
