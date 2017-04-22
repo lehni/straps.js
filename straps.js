@@ -233,6 +233,10 @@ var Base = new function() {
             return ctor;
         }
     }).inject({
+        // Mark all properties in Base as not enumerable so that it can be used
+        // as a basic hash-table class, e.g. `new Base(defaults, options);
+        enumerable: false,
+
         /**
          * The Base constructor function.
          *
